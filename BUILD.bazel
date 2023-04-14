@@ -1,0 +1,10 @@
+py_library(
+    name = "autodiff",
+    srcs = ["autodiff.py"],
+)
+
+py_test(
+    name = "autodiff_test",
+    srcs = ["autodiff_test.py"],
+    deps = [":autodiff"],
+)
