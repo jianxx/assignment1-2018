@@ -33,6 +33,13 @@ class Node(object):
 
     def __mul__(self, other):
         """TODO: Your code here"""
+        if isinstance(other, Node):
+            new_node = mul_op(self, other)
+        else:
+            # Add by a constant stores the constant in the new node's const_attr field.
+            # 'other' argument is a constant
+            new_node = mul_byconst_op(self, other)
+        return new_node
 
     # Allow left-hand-side add and multiply.
     __radd__ = __add__
@@ -59,7 +66,7 @@ class Op(object):
 
     def __call__(self):
         """Create a new node and associate the op object with the node.
-        
+
         Returns
         -------
         The new node object.
@@ -94,6 +101,7 @@ class Op(object):
         -------
         A list of gradient contributions to each input node respectively.
         """
+
         raise NotImplementedError
 
 
@@ -148,10 +156,13 @@ class MulOp(Op):
     def compute(self, node, input_vals):
         """Given values of two input nodes, return result of element-wise multiplication."""
         """TODO: Your code here"""
+        assert len(input_vals) == 2
+        return input_vals[0] * input_vals[1]
 
     def gradient(self, node, output_grad):
         """Given gradient of multiply node, return gradient contributions to each input."""
         """TODO: Your code here"""
+        return [output_grad, output_grad]
 
 
 class MulByConstOp(Op):
@@ -167,10 +178,13 @@ class MulByConstOp(Op):
     def compute(self, node, input_vals):
         """Given values of input node, return result of element-wise multiplication."""
         """TODO: Your code here"""
+        assert len(input_vals) == 1
+        return input_vals[0] * node.const_attr
 
     def gradient(self, node, output_grad):
         """Given gradient of multiplication node, return gradient contribution to input."""
         """TODO: Your code here"""
+        return [output_grad]
 
 
 class MatMulOp(Op):
@@ -305,6 +319,9 @@ class Executor:
         # Traverse graph in topological sort order and compute values for all nodes.
         topo_order = find_topo_sort(self.eval_node_list)
         """TODO: Your code here"""
+        for node in topo_order:
+            if node not in node_to_val_map:
+                node_to_val_map[node] = node.op.compute(node, [node_to_val_map[inp] for inp in node.inputs])
 
         # Collect node values.
         node_val_results = [node_to_val_map[node] for node in self.eval_node_list]
